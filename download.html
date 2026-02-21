@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuxNet - Downloading...</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="download-page">
+  <div class="download-container">
+    <header class="download-header">
+      <div class="header-brand">
+        <span class="logo">⚡</span>
+        <span class="logo-text">MuxNet</span>
+      </div>
+      <div class="header-title">
+        <h1 id="filename">Loading stream...</h1>
+        <p id="jobId" class="job-id"></p>
+      </div>
+    </header>
+
+    <main class="download-main">
+      <!-- Progress Section -->
+      <section class="progress-section">
+        <div class="progress-header">
+          <h2>Download Progress</h2>
+          <div class="progress-percentage" id="percentage">0%</div>
+        </div>
+        
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+        
+        <div class="progress-stats">
+          <div class="stat-item">
+            <span class="stat-label">Speed</span>
+            <span class="stat-value" id="speed">0 MB/s</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Downloaded</span>
+            <span class="stat-value" id="downloaded">0 MB</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">ETA</span>
+            <span class="stat-value" id="eta">Calculating...</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status Section -->
+      <section class="status-section">
+        <div class="status-card">
+          <div class="status-icon">
+            <div class="spinner" id="spinner"></div>
+          </div>
+          <div class="status-content">
+            <h3 id="statusTitle">Initializing...</h3>
+            <p id="statusDescription">Setting up download engine</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Details Section -->
+      <section class="details-section">
+        <div class="details-grid">
+          <div class="detail-card">
+            <div class="detail-label">Segments</div>
+            <div class="detail-value" id="segments">0 / 0</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Workers</div>
+            <div class="detail-value" id="workers">0 active</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">Failed</div>
+            <div class="detail-value" id="failed">0</div>
+          </div>
+          <div class="detail-card">
+            <div class="detail-label">File Size</div>
+            <div class="detail-value" id="fileSize">Calculating...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Workers Visualization -->
+      <section class="workers-section">
+        <h3>Worker Pool Status</h3>
+        <div class="workers-grid" id="workersGrid">
+          <!-- Workers will be dynamically added here -->
+        </div>
+      </section>
+
+      <!-- Live Log -->
+      <section class="log-section">
+        <div class="log-header">
+          <h3>Activity Log</h3>
+          <div class="log-controls">
+            <button class="btn-sm" id="clearLog">Clear</button>
+            <button class="btn-sm" id="exportLog">Export</button>
+          </div>
+        </div>
+        <div class="log-container" id="logContainer">
+          <!-- Logs will be appended here -->
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <div class="controls-section">
+        <button id="pauseBtn" class="btn btn-secondary" disabled>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+          <span>Pause</span>
+        </button>
+        <button id="cancelBtn" class="btn btn-danger">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+          <span>Cancel</span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal for completion -->
+  <div id="completeModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-icon success">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h2>Download Complete!</h2>
+      <p id="completedFilename"></p>
+      <p class="modal-stats">
+        <span id="completedSize"></span> • 
+        <span id="completedTime"></span> • 
+        <span id="completedSpeed"></span>
+      </p>
+      <button id="closeModal" class="btn btn-primary">Close</button>
+    </div>
+  </div>
+
+  <!-- Load FFmpeg.wasm -->
+  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
+  
+  <!-- Load MuxNet Engine -->
+  <script type="module">
+    import { MuxNetEngine } from './src/core/engine.js';
+    
+    // Initialize engine when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      const engine = new MuxNetEngine();
+      window.muxnet = engine; // Expose for debugging
+      engine.start();
+    });
+  </script>
+</body>
+</html>

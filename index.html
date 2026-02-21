@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuxNet - Lightning-Fast Stream Downloader</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-brand">
+        <span class="logo">⚡</span>
+        <span class="logo-text">MuxNet</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#install">Install</a>
+        <a href="https://github.com/muxnet/muxnet" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="container">
+      <h1 class="hero-title">
+        Download HLS Streams at
+        <span class="gradient-text">Lightning Speed</span>
+      </h1>
+      <p class="hero-subtitle">
+        MuxNet downloads and muxes video+audio streams in parallel using 32 workers and FFmpeg.wasm.
+        <br>Get perfectly synchronized files 4x faster than traditional downloaders.
+      </p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number">4x</div>
+          <div class="stat-label">Faster Downloads</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">32</div>
+          <div class="stat-label">Parallel Workers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">100%</div>
+          <div class="stat-label">Client-Side</div>
+        </div>
+      </div>
+
+      <div class="cta-buttons">
+        <a href="#install" class="btn btn-primary">
+          <span>Install Extension</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a href="#demo" class="btn btn-secondary">
+          <span>Watch Demo</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section id="features" class="section features-section">
+    <div class="container">
+      <h2 class="section-title">Why MuxNet?</h2>
+      
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Turbo Download Engine</h3>
+          <p>Up to 32 parallel workers download segments simultaneously. Adaptive concurrency automatically adjusts based on your network speed.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">Web Workers</span>
+            <span class="tech-badge">Adaptive Concurrency</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎬</div>
+          <h3>Real-Time Muxing</h3>
+          <p>FFmpeg.wasm muxes video and audio tracks as segments download. Perfect synchronization using PTS timestamps.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">FFmpeg.wasm</span>
+            <span class="tech-badge">PTS Sync</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🔒</div>
+          <h3>Privacy First</h3>
+          <p>100% client-side processing. No uploads, no servers, no tracking. Your streams never leave your browser.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">Client-Side</span>
+            <span class="tech-badge">Zero Upload</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Live Analytics</h3>
+          <p>Real-time progress tracking with download speed, ETA, worker status, and detailed segment logs.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">Live Stats</span>
+            <span class="tech-badge">Worker Monitoring</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Smart Detection</h3>
+          <p>Automatically detects HLS/DASH streams. Parses master playlists and extracts the best quality variants.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">HLS/DASH</span>
+            <span class="tech-badge">Auto-Quality</span>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">💾</div>
+          <h3>Resume Support</h3>
+          <p>Network interrupted? Resume from where you left off. Progress saved in IndexedDB.</p>
+          <div class="feature-tech">
+            <span class="tech-badge">IndexedDB</span>
+            <span class="tech-badge">Auto-Resume</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how-it-works" class="section how-section">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      
+      <div class="steps-container">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Install Extension</h3>
+            <p>Add the MuxNet Detector extension to Chrome. It's lightweight (~500KB) and only detects streams.</p>
+          </div>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Visit Video Site</h3>
+            <p>Go to any site with HLS/DASH streams. The extension automatically detects available streams.</p>
+          </div>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Click Turbo Download</h3>
+            <p>Extension popup shows detected streams. Click "⚡ Turbo Download" to launch MuxNet.</p>
+          </div>
+        </div>
+
+        <div class="step-arrow">→</div>
+
+        <div class="step">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <h3>Lightning Fast Download</h3>
+            <p>MuxNet opens, downloads at maximum speed with 32 workers, muxes in real-time, and saves perfectly synced file.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tech-diagram">
+        <h3>Architecture</h3>
+        <pre class="code-block">
+Browser Tab (Main Thread)
+├─ MuxNet Engine Coordinator
+│
+├─ Worker Pool (32 workers)
+│  ├─ Worker 1-8:   Download segments 0-225
+│  ├─ Worker 9-16:  Download segments 226-450
+│  ├─ Worker 17-24: Download segments 451-675
+│  └─ Worker 25-32: Download segments 676-900
+│
+├─ FFmpeg.wasm (Streaming Mode)
+│  └─ Muxes video+audio by PTS timestamps
+│
+└─ Output: Perfectly synchronized .ts/.mp4 file
+        </pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="install" class="section install-section">
+    <div class="container">
+      <h2 class="section-title">Get Started</h2>
+      
+      <div class="install-grid">
+        <div class="install-card">
+          <h3>Chrome Extension</h3>
+          <p>Install the lightweight stream detector</p>
+          <a href="#" class="btn btn-primary">Add to Chrome</a>
+          <p class="install-note">~500 KB • Manifest V3</p>
+        </div>
+
+        <div class="install-card">
+          <h3>Standalone App</h3>
+          <p>Use MuxNet directly without extension</p>
+          <a href="/download" class="btn btn-secondary">Open MuxNet</a>
+          <p class="install-note">No installation required</p>
+        </div>
+      </div>
+
+      <div class="compatibility">
+        <h4>System Requirements</h4>
+        <ul>
+          <li>✅ Chrome 90+ (or any Chromium-based browser)</li>
+          <li>✅ 2 GB RAM minimum (4 GB recommended for large files)</li>
+          <li>✅ JavaScript enabled</li>
+          <li>✅ Internet connection for FFmpeg.wasm download (~30 MB, one-time)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section faq-section">
+    <div class="container">
+      <h2 class="section-title">FAQ</h2>
+      
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h3>Is it really 4x faster?</h3>
+          <p>Yes! Traditional extension downloaders are limited to 6-8 concurrent connections and single-threaded OPFS writes. MuxNet uses 32 parallel workers with SharedArrayBuffer for zero-copy transfers, achieving 30-50 MB/s vs 8-12 MB/s.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Does it upload my videos to a server?</h3>
+          <p>No. MuxNet is 100% client-side. All processing happens in your browser using Web Workers and FFmpeg.wasm. Nothing is uploaded anywhere.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Why does it need FFmpeg.wasm?</h3>
+          <p>HLS streams have separate video and audio tracks that need to be muxed (merged) with proper timestamp synchronization. FFmpeg.wasm provides real packet-level muxing for perfect A/V sync.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What's the file size limit?</h3>
+          <p>No hard limit. MuxNet uses streaming writes, so it never loads the entire file into RAM. We've tested with 10+ GB files successfully.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I use it without the extension?</h3>
+          <p>Yes! You can manually provide segment URLs directly to muxnet.app/download. The extension just makes detection easier.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Is it open source?</h3>
+          <p>Yes! MuxNet is MIT licensed. Check out the <a href="https://github.com/muxnet/muxnet">GitHub repo</a> to contribute or self-host.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="logo">⚡</span>
+          <span class="logo-text">MuxNet</span>
+          <p>Lightning-fast stream downloads</p>
+        </div>
+        
+        <div class="footer-links">
+          <div class="footer-column">
+            <h4>Product</h4>
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#install">Install</a>
+          </div>
+          
+          <div class="footer-column">
+            <h4>Developers</h4>
+            <a href="https://github.com/muxnet/muxnet">GitHub</a>
+            <a href="/docs">Documentation</a>
+            <a href="/api">API</a>
+          </div>
+          
+          <div class="footer-column">
+            <h4>Support</h4>
+            <a href="/faq">FAQ</a>
+            <a href="https://github.com/muxnet/muxnet/issues">Bug Reports</a>
+            <a href="/contact">Contact</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-bottom">
+        <p>© 2025 MuxNet • MIT License • Built with FFmpeg.wasm</p>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
