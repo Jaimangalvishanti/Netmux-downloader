@@ -56,16 +56,39 @@ export class MuxNetEngine {
   }
 
   // ── Job loading ─────────────────────────────────────────────────────────────
+  // Web pages cannot call chrome.storage.local.get() directly — that API is
+  // only available to extension pages (background, popup, offscreen).
+  // Instead we use chrome.runtime.sendMessage(extId, {type:'GET_MUXNET_JOB'})
+  // which is allowed for origins listed in externally_connectable.
+  // The extension background SW reads storage and sends the data back.
 
   async loadJobData() {
     this.log('Loading job data from extension...', 'info');
 
-    if (typeof chrome !== 'undefined' && chrome.storage) {
+    // Get extension ID from URL param (?ext=...) injected by background.js
+    const params = new URLSearchParams(window.location.search);
+    const extId  = params.get('ext');
+
+    if (extId && typeof chrome !== 'undefined' && chrome.runtime) {
       try {
-        const key    = `muxnet_job_${this.jobId}`;
-        const result = await chrome.storage.local.get(key);
-        if (result[key]) {
-          this.jobData = result[key];
+        const response = await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Extension message timeout')), 8000);
+          chrome.runtime.sendMessage(
+            extId,
+            { type: 'GET_MUXNET_JOB', jobId: this.jobId },
+            (resp) => {
+              clearTimeout(timeout);
+              if (chrome.runtime.lastError) {
+                reject(new Error(chrome.runtime.lastError.message));
+              } else {
+                resolve(resp);
+              }
+            }
+          );
+        });
+
+        if (response?.success && response.jobData) {
+          this.jobData = response.jobData;
           this.log(`Job loaded: "${this.jobData.title || 'Stream'}"`, 'success');
           this.updateUI({
             filename:          this.jobData.title || 'Stream',
@@ -74,13 +97,19 @@ export class MuxNetEngine {
                                `${this.jobData.segments?.audio?.length || 0} audio segments`
           });
           return;
+        } else {
+          throw new Error(response?.error || 'Empty response from extension');
         }
+
       } catch (error) {
-        console.warn('[MuxNet] chrome.storage unavailable:', error.message);
+        this.log(`Extension message failed: ${error.message}`, 'error');
+        console.warn('[MuxNet] Extension sendMessage failed:', error.message);
       }
+    } else if (!extId) {
+      this.log('No ext= param in URL — cannot contact extension', 'error');
     }
 
-    // Fallback: localStorage (standalone / test mode)
+    // Fallback: localStorage (standalone / test mode without extension)
     try {
       const localData = localStorage.getItem(`muxnet_job_${this.jobId}`);
       if (localData) {
