@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MuxNet - Downloading...</title>
+  <title>MuxNet — Downloading...</title>
   <link rel="stylesheet" href="styles/main.css">
+  <!--
+    Google Fonts: loaded before COEP kicks in (initial navigation).
+    Works with credentialless COEP. Would break with require-corp.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body class="download-page">
@@ -27,13 +32,11 @@
           <h2>Download Progress</h2>
           <div class="progress-percentage" id="percentage">0%</div>
         </div>
-        
         <div class="progress-bar-container">
           <div class="progress-bar">
             <div id="progressFill" class="progress-fill"></div>
           </div>
         </div>
-        
         <div class="progress-stats">
           <div class="stat-item">
             <span class="stat-label">Speed</span>
@@ -88,9 +91,7 @@
       <!-- Workers Visualization -->
       <section class="workers-section">
         <h3>Worker Pool Status</h3>
-        <div class="workers-grid" id="workersGrid">
-          <!-- Workers will be dynamically added here -->
-        </div>
+        <div class="workers-grid" id="workersGrid"></div>
       </section>
 
       <!-- Live Log -->
@@ -102,9 +103,7 @@
             <button class="btn-sm" id="exportLog">Export</button>
           </div>
         </div>
-        <div class="log-container" id="logContainer">
-          <!-- Logs will be appended here -->
-        </div>
+        <div class="log-container" id="logContainer"></div>
       </section>
 
       <!-- Controls -->
@@ -127,8 +126,8 @@
     </main>
   </div>
 
-  <!-- Modal for completion -->
-  <div id="completeModal" class="modal" style="display: none;">
+  <!-- Completion Modal -->
+  <div id="completeModal" class="modal" style="display:none;">
     <div class="modal-content">
       <div class="modal-icon success">
         <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -138,25 +137,86 @@
       <h2>Download Complete!</h2>
       <p id="completedFilename"></p>
       <p class="modal-stats">
-        <span id="completedSize"></span> • 
-        <span id="completedTime"></span> • 
+        <span id="completedSize"></span> •
+        <span id="completedTime"></span> •
         <span id="completedSpeed"></span>
       </p>
       <button id="closeModal" class="btn btn-primary">Close</button>
     </div>
   </div>
 
-  <!-- Load FFmpeg.wasm -->
-  <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js"></script>
-  
-  <!-- Load MuxNet Engine -->
+  <!--
+    FFmpeg.wasm UMD bundle.
+    crossorigin="anonymous" is required when COEP is active — without it the
+    browser blocks the script as a cross-origin resource under credentialless COEP.
+    The UMD bundle exposes the global as window.FFmpegWASM = { FFmpeg, fetchFile }.
+  -->
+  <script crossorigin="anonymous"
+          src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.js">
+  </script>
+
   <script type="module">
     import { MuxNetEngine } from './src/core/engine.js';
-    
-    // Initialize engine when page loads
+
+    // ── SharedArrayBuffer check ───────────────────────────────────────────────
+    // FFmpeg.wasm requires SharedArrayBuffer. If COOP/COEP headers are missing
+    // (e.g. the netlify.toml wasn't deployed), show a clear error instead of a
+    // cryptic FFmpeg.wasm crash.
+    if (typeof SharedArrayBuffer === 'undefined') {
+      document.getElementById('statusTitle').textContent       = 'Setup Required';
+      document.getElementById('statusDescription').textContent =
+        'SharedArrayBuffer is disabled. The site is missing required security headers. ' +
+        'Make sure netlify.toml is deployed with COOP/COEP headers.';
+      document.getElementById('spinner').style.display = 'none';
+      console.error('[MuxNet] SharedArrayBuffer undefined — COOP/COEP headers missing');
+      throw new Error('SharedArrayBuffer not available');
+    }
+
+    // ── FFmpegWASM global resolution ──────────────────────────────────────────
+    // The @ffmpeg/ffmpeg UMD bundle should expose window.FFmpegWASM.
+    // Older versions exposed window.FFmpeg directly. Handle both.
+    if (!window.FFmpegWASM) {
+      if (window.FFmpeg) {
+        window.FFmpegWASM = window.FFmpeg;
+        console.warn('[MuxNet] Using window.FFmpeg fallback for FFmpegWASM');
+      } else {
+        document.getElementById('statusTitle').textContent       = 'Script Load Error';
+        document.getElementById('statusDescription').textContent =
+          'FFmpeg.wasm failed to load. Check browser console and network tab.';
+        document.getElementById('spinner').style.display = 'none';
+        console.error('[MuxNet] FFmpegWASM global not found after script load');
+        throw new Error('FFmpegWASM not loaded');
+      }
+    }
+
+    // ── Log controls ──────────────────────────────────────────────────────────
+    document.getElementById('clearLog')?.addEventListener('click', () => {
+      const c = document.getElementById('logContainer');
+      if (c) c.innerHTML = '';
+    });
+
+    document.getElementById('exportLog')?.addEventListener('click', () => {
+      const c    = document.getElementById('logContainer');
+      const text = c ? [...c.querySelectorAll('.log-entry')].map(e => e.textContent).join('\n') : '';
+      const blob = new Blob([text], { type: 'text/plain' });
+      const url  = URL.createObjectURL(blob);
+      const a    = Object.assign(document.createElement('a'), { href: url, download: `muxnet-log-${Date.now()}.txt` });
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // ── Start engine ──────────────────────────────────────────────────────────
     window.addEventListener('DOMContentLoaded', () => {
-      const engine = new MuxNetEngine();
-      window.muxnet = engine; // Expose for debugging
+      const engine   = new MuxNetEngine();
+      window.muxnet  = engine;
+
+      document.getElementById('cancelBtn')?.addEventListener('click', () => {
+        engine.isCancelled = true;
+        document.getElementById('statusTitle').textContent       = 'Cancelled';
+        document.getElementById('statusDescription').textContent = 'Download cancelled';
+        document.getElementById('spinner').style.display = 'none';
+      });
+
       engine.start();
     });
   </script>

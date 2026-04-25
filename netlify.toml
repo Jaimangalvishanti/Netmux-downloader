@@ -1,0 +1,38 @@
+# netlify.toml
+# Required for FFmpeg.wasm to work on Netlify (including free tier).
+#
+# FFmpeg.wasm needs SharedArrayBuffer, which requires cross-origin isolation.
+# Two headers are needed on every response:
+#
+#   Cross-Origin-Opener-Policy: same-origin
+#     Isolates the browsing context so other windows can't access this page.
+#
+#   Cross-Origin-Embedder-Policy: credentialless
+#     Enables SharedArrayBuffer without requiring every external resource to
+#     explicitly opt-in via CORP header. This is less strict than 'require-corp'
+#     and works with Google Fonts, CDN scripts, and streaming CDN segments
+#     without needing to modify any of those services.
+#     Supported in Chrome 96+, Firefox 119+.
+#
+# NOTE: 'require-corp' would also work but blocks Google Fonts and any CDN
+# resource that doesn't send Cross-Origin-Resource-Policy: cross-origin.
+# 'credentialless' avoids that problem entirely.
+
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy   = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
+    X-Content-Type-Options       = "nosniff"
+    X-Frame-Options              = "DENY"
+    Referrer-Policy              = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/workers/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy   = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
+    Content-Type                 = "application/javascript"
