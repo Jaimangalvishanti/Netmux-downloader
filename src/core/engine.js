@@ -73,44 +73,86 @@ export class MuxNetEngine {
     const extId  = params.get('ext');
 
     if (extId && typeof chrome !== 'undefined' && chrome.runtime) {
-      try {
-        const response = await new Promise((resolve, reject) => {
-          const timeout = setTimeout(
-            () => reject(new Error('Extension message timeout after 8s')), 8000
+      // MV3 service workers go idle ~30s after last activity. By the time this
+      // page loads, the SW may be dead and Chrome needs 0.5–2s to restart it.
+      // "Could not establish connection. Receiving end does not exist." means the
+      // SW is still waking up — the message arrived during the restart window.
+      //
+      // Fix: retry with increasing delays to cover the full SW wake window.
+      // 8 attempts × ~1s apart = 8s total, well within the SW restart time.
+
+      const MAX_ATTEMPTS = 8;
+      const BASE_DELAY_MS = 800;
+      let lastError = null;
+
+      for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        try {
+          this.log(
+            attempt === 1
+              ? 'Contacting extension...'
+              : `Retrying extension contact (attempt ${attempt}/${MAX_ATTEMPTS})...`,
+            'info'
           );
-          chrome.runtime.sendMessage(
-            extId,
-            { type: 'GET_MUXNET_JOB', jobId: this.jobId },
-            (resp) => {
-              clearTimeout(timeout);
-              if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message));
-              } else {
-                resolve(resp);
+
+          const response = await new Promise((resolve, reject) => {
+            // Short per-attempt timeout — if SW is dead, it fails fast
+            const timeout = setTimeout(
+              () => reject(new Error('Attempt timeout')), 3000
+            );
+            chrome.runtime.sendMessage(
+              extId,
+              { type: 'GET_MUXNET_JOB', jobId: this.jobId },
+              (resp) => {
+                clearTimeout(timeout);
+                if (chrome.runtime.lastError) {
+                  reject(new Error(chrome.runtime.lastError.message));
+                } else {
+                  resolve(resp);
+                }
               }
-            }
-          );
-        });
-
-        if (response?.success && response.jobData) {
-          this.jobData = response.jobData;
-          const v = this.jobData.segments?.video?.length  || 0;
-          const a = this.jobData.segments?.audio?.length  || 0;
-          this.log(`Job loaded: "${this.jobData.title || 'Stream'}" — ${v} video + ${a} audio segs`, 'success');
-          this.updateUI({
-            filename:          this.jobData.title || 'Stream',
-            statusTitle:       'Job loaded',
-            statusDescription: `${v} video segments + ${a} audio segments`
+            );
           });
-          return;
-        } else {
-          throw new Error(response?.error || 'Empty response from extension');
-        }
 
-      } catch (error) {
-        this.log(`Extension message failed: ${error.message}`, 'error');
-        console.warn('[MuxNet] sendMessage failed:', error);
+          if (response?.success && response.jobData) {
+            this.jobData = response.jobData;
+            const v = this.jobData.segments?.video?.length || 0;
+            const a = this.jobData.segments?.audio?.length || 0;
+            this.log(`Job loaded: "${this.jobData.title || 'Stream'}" — ${v} video + ${a} audio segs`, 'success');
+            this.updateUI({
+              filename:          this.jobData.title || 'Stream',
+              statusTitle:       'Job loaded',
+              statusDescription: `${v} video segments + ${a} audio segments`
+            });
+            return; // success — exit retry loop
+          } else {
+            // SW responded but job not found — no point retrying
+            throw new Error(response?.error || 'Job not found in extension storage');
+          }
+
+        } catch (error) {
+          lastError = error;
+          const isConnectionError =
+            error.message.includes('Receiving end does not exist') ||
+            error.message.includes('Could not establish connection') ||
+            error.message.includes('Attempt timeout');
+
+          if (!isConnectionError) {
+            // SW responded with an actual error — don't retry
+            this.log(`Extension error: ${error.message}`, 'error');
+            break;
+          }
+
+          if (attempt < MAX_ATTEMPTS) {
+            const delay = BASE_DELAY_MS * attempt; // 800ms, 1600ms, 2400ms...
+            this.log(`SW waking up, retrying in ${delay}ms...`, 'info');
+            await new Promise(r => setTimeout(r, delay));
+          }
+        }
       }
+
+      this.log(`Extension contact failed after ${MAX_ATTEMPTS} attempts: ${lastError?.message}`, 'error');
+      console.warn('[MuxNet] sendMessage exhausted retries:', lastError);
+
     } else if (!extId) {
       this.log('No ?ext= in URL — cannot contact extension', 'error');
     }
